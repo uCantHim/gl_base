@@ -69,18 +69,16 @@ namespace glb
     };
 
 
-    class Test : public OpenGlLazyInitializer
-    {
-        void openGlLazyInit() override {
-            std::cout << "Lazily initialized!\n";
-        }
-    };
-
     /**
      * @brief A window. Represents an OpenGL rendering context.
      *
      * This is a static class. That means that there can only ever exist one
      * window.
+     *
+     * Creating a window is the basic entry point into most functionality of
+     * the library. Of course, you can use helper classes like Texture or
+     * ShaderProgram with other means of creating OpenGL contexts, for
+     * example other libraries or a more low-level approach.
      *
      * Initialize the window with Window::create(), destroy it with
      * Window::close(). Calling Window::create while the window is still alive
@@ -88,13 +86,26 @@ namespace glb
      * been destroyed.
      * Query whether the window is created with Window::isOpen().
      *
-     * The WindowData structure is passed as an argument to Window::create().
-     * The default member-initializers set its values to sensible values.
+     * The WindowData structure is passed as an argument to Window::create()
+     * and controls many properties of the window and further functionality
+     * of the library.
+     * It is not required to specify a WindowData, the default values are
+     * sensible for simple tests. You'll want to customize these values for
+     * more fleshed-out applications.
      *
-     * The window is responsible for generating various events, like
+     * The window also initializes the EventHandler and with it the gl_base
+     * event system. If you wish not to use this funtionality, disable
+     * initialization of the EventHandler by setting the useEventHandler
+     * flag in the WindowData passed to Window::create().
+     *
+     * The window generates various events, for example:
+     *
      * - Key presses
-     * - Mouse movement/-key presses
+     *
+     * - Mouse movement/-button presses
+     *
      * - Window-specific events like resize or open/close
+     *
      * See @ref EventHandler.h "Event Handler" for more information on events.
      */
     class Window
@@ -138,6 +149,8 @@ namespace glb
 
             InputModeFlags inputMode = static_cast<InputModeFlags>(InputModeFlags::stickyKeys | InputModeFlags::stickyMouseButtons);
             CursorMode cursorMode{ CursorMode::normal };
+
+            bool useEventHandler{ true };
         };
 
         /**

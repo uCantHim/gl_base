@@ -144,8 +144,6 @@ GLFWwindow* createWindow(const glb::Window::WindowData& data)
 
 void glb::Window::initCallbacks()
 {
-	EventHandler::init();
-
 	glfwSetKeyCallback(window, [](GLFWwindow*, int key, int /*scancode*/, int action, int mods) {
         if (action == static_cast<int>(eInputAction::press))
         {
@@ -229,6 +227,9 @@ void glb::Window::create(const WindowData& data)
 	// GLEW must be initialized after an OpenGL context (aka. the window) has been created.
 	initGLEW();
     _openglInitialized = true;
+
+    if (data.useEventHandler == true)
+        EventHandler::init();
 	initCallbacks();
 	ilInit();
 
