@@ -195,9 +195,6 @@ void glb::Window::initCallbacks()
         sizePixels = ivec2(width, height);
         updateViewport();
         EventHandler::notify(std::make_unique<WindowResizeEvent>(oldSize, sizePixels));
-
-        // Test
-        std::cout << "Window resize callback\n";
     });
 
 	std::cout << "--- Event handler initialized.\n";
