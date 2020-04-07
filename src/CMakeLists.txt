@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.13)
 
+target_include_directories(
+    gl_base
+    PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}
+)
+
 target_sources(
     gl_base
     PUBLIC
