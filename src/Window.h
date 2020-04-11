@@ -177,9 +177,9 @@ namespace glb
         /**
          * @brief Swap back- and front buffer
          *
-         * Call this after a frame has been rendered. Causes the current
-         * framebuffer to be drawn to the screen and makes the currently
-         * presented buffer current.
+         * Call this after a frame has been rendered. Swaps front- and back
+         * buffer. That means that all rendered framebuffer contents will be
+         * shown on the screen.
          */
         static void swapBuffers();
 
@@ -190,6 +190,16 @@ namespace glb
          * Only call this from the main thread.
          */
         static void pollEvents();
+
+        /**
+         * @brief Clear the current back buffer
+         *
+         * Calls glClear() internally to clear the color buffer and the depth
+         * buffer of the current back buffer.
+         *
+         * Only call this from the main thread.
+         */
+        static void clear();
 
         /**
          * @brief Resize the OpenGL viewport to the current window size
