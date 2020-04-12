@@ -240,6 +240,14 @@ void glb::Window::create(const WindowData& data)
     _isOpen = true;
     EventHandler::notify(std::make_unique<WindowCreateEvent>());
 	std::cout << "--- Window created successfully.\n";
+
+    // Resize the window to the actual framebuffer size.
+    // Tiling window managers for example might resize the window
+    // forcefully, in which case the resize is not recognized as
+    // such.
+    ivec2 framebufferSize;
+    glfwGetFramebufferSize(window, &framebufferSize.x, &framebufferSize.y);
+    resize(framebufferSize);
 }
 
 void glb::Window::close()
