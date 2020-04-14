@@ -193,7 +193,6 @@ void glb::Window::initCallbacks()
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int width, int height) {
         ivec2 oldSize = sizePixels;
         sizePixels = ivec2(width, height);
-        updateViewport();
         EventHandler::notify(std::make_unique<WindowResizeEvent>(oldSize, sizePixels));
     });
 
@@ -294,8 +293,6 @@ void glb::Window::resize(ivec2 newSizePixels)
     sizePixels = ivec2(newSizePixels.x, newSizePixels.y);
     updateViewport();
     EventHandler::notify(std::make_unique<WindowResizeEvent>(oldSize, sizePixels));
-
-    std::cout << "Window resize method\n";
 }
 
 bool glb::Window::isOpen()

@@ -1,5 +1,6 @@
 #! /usr/bin/env bash
 
+if [[ ! -d build ]]; then mkdir build; fi
 cd build || exit 1
 rm -r ./*
 
@@ -15,10 +16,7 @@ if [[ ! $( cmake ../.. ) ]]; then
     exit 1
 fi
 
-if [[ ! $( cmake --build . ) ]]; then
-    echo "Cmake build failed. Exiting."
-    exit 1
-fi
+cmake --build . --parallel 8 1>&2
 
 # Compile with gcc
 echo "--- Compiling with clang..."
@@ -29,7 +27,4 @@ if [[ ! $( cmake ../.. ) ]]; then
     exit 1
 fi
 
-if [[ ! $( cmake --build . ) ]]; then
-    echo "Cmake build failed. Exiting."
-    exit 1
-fi
+cmake --build . --parallel 8 1>&2
