@@ -23,7 +23,7 @@ namespace glb
     class Texture
     {
     public:
-        static constexpr vec4 UNINITIALIZED_COLOR{ 0.8, 0.3, 0.7, 1.0 };
+        static inline const vec4 UNINITIALIZED_COLOR{ 0.8, 0.3, 0.7, 1.0 };
 
         /**
          * @brief Intialize the texture to a default color with size 1x1
