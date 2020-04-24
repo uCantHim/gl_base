@@ -175,6 +175,12 @@ namespace glb
         static void close();
 
         /**
+         * @return GLFWwindow* The underlying GLFW window. Nullptr is the
+         *                     window has not been created.
+         */
+        static auto getGlfwWindow() -> GLFWwindow*;
+
+        /**
          * @brief Swap back- and front buffer
          *
          * Call this after a frame has been rendered. Swaps front- and back

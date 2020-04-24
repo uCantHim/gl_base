@@ -258,6 +258,11 @@ void glb::Window::close()
     glfwDestroyWindow(window);
 }
 
+auto glb::Window::getGlfwWindow() -> GLFWwindow*
+{
+    return window;
+}
+
 void glb::Window::swapBuffers()
 {
 	glfwSwapBuffers(window);
