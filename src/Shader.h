@@ -136,7 +136,7 @@ namespace glb
         /**
          * @brief Bind the program to the current OpenGL state
          */
-        void bind();
+        void bind() const;
 
     private:
         glSharedProgram program;

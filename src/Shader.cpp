@@ -49,7 +49,7 @@ void glb::ShaderProgram::initComputeProgram(const std::string& computeShaderPath
 	program = ShaderLoader::loadComputeProgram(computeShaderPath);
 }
 
-void glb::ShaderProgram::bind()
+void glb::ShaderProgram::bind() const
 {
 	glUseProgram(*program);
 }
