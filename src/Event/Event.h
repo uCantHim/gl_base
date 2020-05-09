@@ -29,10 +29,10 @@ namespace glb
     {
     public:
         template<typename T>
-        using isEventType = std::enable_if_t<std::is_base_of_v<Event, T>, bool>;
+        static constexpr bool isEventType = std::is_base_of_v<Event, T>;
 
         template<typename T>
-        using isDecayed = std::enable_if_t<std::is_same_v<std::decay_t<T>, T>, bool>;
+        static constexpr bool isDecayed = std::is_same_v<std::decay_t<T>, T>;
 
         Event() noexcept = default;
         Event(const Event&) = default;
@@ -50,9 +50,11 @@ namespace glb
          *
          * @return True if the event is of the specified type, false otherwise
          */
-        template<class T, isEventType<T> = true, isDecayed<T> = true>
-        [[nodiscard]]
+        template<class T> [[nodiscard]]
         bool is() noexcept {
+            static_assert(isEventType<T>, "glb::Event::is<> template parameter must be derived from glb::Event");
+            static_assert(isDecayed<T>, "glb::Event::is<> template parameter must be a decayed type");
+
             return dynamic_cast<T*>(this) != nullptr;
         }
 
@@ -64,21 +66,41 @@ namespace glb
          *
          * @return True if the event is of the specified type, false otherwise
          */
-        template<class T, isEventType<T> = true, isDecayed<T> = true>
-        [[nodiscard]]
+        template<class T> [[nodiscard]]
         bool is() const noexcept {
+            static_assert(isEventType<T>, "glb::Event::is<> template parameter must be derived from glb::Event");
+            static_assert(isDecayed<T>, "glb::Event::is<> template parameter must be a decayed type");
+
             return dynamic_cast<const T*>(this) != nullptr;
         }
 
-        template<class T, isEventType<T> = true, isDecayed<T> = true>
-        [[nodiscard]]
+        /**
+         * @brief dynamic_cast the event to another event type
+         *
+         * @tparam The event type to cast to.
+         *
+         * @return A pointer if the cast was successful, nullptr otherwise
+         */
+        template<class T> [[nodiscard]]
         T* to() noexcept {
+            static_assert(isEventType<T>, "glb::Event::to<> template parameter must be derived from glb::Event");
+            static_assert(isDecayed<T>, "glb::Event::to<> template parameter must be a decayed type");
+
             return dynamic_cast<T*>(this);
         }
 
-        template<class T, isEventType<T> = true, isDecayed<T> = true>
-        [[nodiscard]]
+        /**
+         * @brief dynamic_cast the event to another event type
+         *
+         * @tparam The event type to cast to.
+         *
+         * @return A pointer if the cast was successful, nullptr otherwise
+         */
+        template<class T> [[nodiscard]]
         T* to() const noexcept {
+            static_assert(isEventType<T>, "glb::Event::to<> template parameter must be derived from glb::Event");
+            static_assert(isDecayed<T>, "glb::Event::to<> template parameter must be a decayed type");
+
             return dynamic_cast<const T*>(this);
         }
     };
