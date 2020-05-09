@@ -28,20 +28,14 @@ namespace glb
 
 
     /**
-     * @brief Lazy initialization for OpenGL calls
-     *
-     * Inheirting from this class and implementing openGlLazyInit promises
-     * that the function will be called as soon as possible but after an
-     * OpenGL context has been created. It is called in the OpenGL main
-     * thread.
+     * Provides a static function to initialize statically created objects
+     * lazily after an OpenGL constext has been created.
      */
-    class OpenGlLazyInitializer
+    class OpenGlLazyInit
     {
     public:
-        OpenGlLazyInitializer();
-
         /**
-         * @brief Add a function to execute at window creation
+         * @brief Add a function to execute at context creation
          *
          * This can be used to initialize OpenGL objects as soon as possible
          * but still after window creation. Is called in the same thread that
@@ -55,17 +49,39 @@ namespace glb
          */
         static void addLazyInitializer(std::function<void(void)> func);
 
-    protected:
-        /**
-         * TODO: I am too lazy to write this right now
-         */
-        virtual void openGlLazyInit() = 0;
-
     private:
         friend class Window;
+
+        /**
+         * Calls all lazy initializers. Called by Window.
+         */
         static void initAll();
 
         static inline std::vector<std::function<void(void)>> lazyInitializers;
+    };
+
+
+    /**
+     * @brief Lazy initialization for OpenGL calls
+     *
+     * Subclasses must implement a method "openGlLazyInit" with the
+     * signature std::function<void(void)>.
+     *
+     * Inheriting from this class and implementing openGlLazyInit promises
+     * that the function will be called as soon as possible but after an
+     * OpenGL context has been created. It is called in the OpenGL main
+     * thread.
+     *
+     * Instantiating a class derived from this when an OpenGL context
+     * already exists calls Derived::openGlLazyInit immediately.
+     *
+     * @tparam Derived The derived class, CRTP style
+     */
+    template <class Derived>
+    class OpenGlLazyInitializer
+    {
+    public:
+        OpenGlLazyInitializer();
     };
 
 

@@ -9,12 +9,7 @@
 
 
 
-glb::OpenGlLazyInitializer::OpenGlLazyInitializer()
-{
-	addLazyInitializer(std::bind(&OpenGlLazyInitializer::openGlLazyInit, this));
-}
-
-void glb::OpenGlLazyInitializer::addLazyInitializer(std::function<void(void)> func)
+void glb::OpenGlLazyInit::addLazyInitializer(std::function<void(void)> func)
 {
 	if (!Window::isOpenGlInitialized())
 		lazyInitializers.push_back(std::move(func));
@@ -22,10 +17,18 @@ void glb::OpenGlLazyInitializer::addLazyInitializer(std::function<void(void)> fu
 		std::invoke(func);
 }
 
-void glb::OpenGlLazyInitializer::initAll()
+void glb::OpenGlLazyInit::initAll()
 {
 	for (const auto& func : lazyInitializers)
 		std::invoke(func);
+}
+
+
+
+template<class Derived>
+glb::OpenGlLazyInitializer<Derived>::OpenGlLazyInitializer()
+{
+	addLazyInitializer(std::bind(&Derived::openGlLazyInit, this));
 }
 
 
@@ -230,7 +233,7 @@ void glb::Window::create(const WindowData& data)
 	ilInit();
 
 	// Call lazy initializers
-	OpenGlLazyInitializer::initAll();
+	OpenGlLazyInit::initAll();
 
     // Poll events once to make the window responsive
     pollEvents();
