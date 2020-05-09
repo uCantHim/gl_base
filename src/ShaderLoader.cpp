@@ -1,6 +1,7 @@
 #include "ShaderLoader.h"
 
 #include <vector>
+#include <set>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -68,6 +69,9 @@ GLuint glb::ShaderLoader::loadShader(const std::string& path, GLuint glShaderEnu
     else
         throw std::runtime_error("Only pass valid filepaths to ShaderLoader::loadShader()!");
 
+    internal::ShaderPreCompiler preCompiler;
+    preCompiler.processShaderCode(shaderCode, path);
+
 	// Create and compile shader
 	GLuint shader = glCreateShader(glShaderEnum);
 	const char* code = shaderCode.c_str(); // Is required because GL needs a double pointer
@@ -108,3 +112,87 @@ GLuint glb::ShaderLoader::linkProgram(const std::vector<GLuint>& shaders)
 
 	return program;
 }
+
+
+
+void glb::internal::ShaderPreCompiler::processShaderCode(std::string& code, const fs::path& shaderPath) noexcept
+{
+    try {
+        processIncludeDirectives(code, shaderPath);
+    }
+    catch (const ShaderCompilerException& err) {
+#ifndef NDEBUG
+        std::cout << "Compiler error when processing shader code:\n"
+            << err.what() << "\n";
+#endif
+    }
+}
+
+void glb::internal::ShaderPreCompiler::processIncludeDirectives(std::string& code, const fs::path& shaderPath)
+{
+    const fs::path includeDirectory(shaderPath.parent_path());
+    std::set<std::string> includedFiles;
+    size_t pos = 0;
+
+    while (pos < code.size() && pos != std::string::npos)
+    {
+        if (code[pos] == '#')
+        {
+            size_t nextSpace = code.find(' ', pos);
+            if (nextSpace == std::string::npos) {
+                break;
+            }
+
+            // Extract the preprocessor directive name
+            auto directive = code.substr(pos, nextSpace - pos);
+            if (directive != "#include") {
+                pos = code.find('\n', pos) + 1;
+                if ((pos - 1) == std::string::npos) break; // Watch out for overflow
+                continue;
+            }
+
+            // If directive is include, extract the included file name
+            size_t firstQuote = code.find('"', nextSpace);
+            size_t secondQuote = code.find('"', firstQuote + 1);
+            if (firstQuote == std::string::npos || secondQuote == std::string::npos) {
+                break;
+            }
+
+            // Insert the included file's contents
+            auto filePath = code.substr(firstQuote + 1, secondQuote - (firstQuote + 1));
+            size_t endLine = code.find('\n', secondQuote);
+            if (endLine == std::string::npos) {
+                code += '\n';
+            }
+            code.erase(code.begin() + pos, code.begin() + endLine + 1);
+            // Don't insert the file contents if the file has already been included
+            if (includedFiles.insert(filePath).second) {
+                auto includedFilePath = fs::path(filePath);
+                if (includedFilePath.is_relative()) {
+                    includedFilePath = includeDirectory / includedFilePath;
+                }
+                insertFile(code, includedFilePath, pos);
+            }
+        }
+
+        pos = code.find('\n', pos) + 1;
+        if ((pos - 1) == std::string::npos) break; // Watch out for overflow
+    }
+}
+
+void glb::internal::ShaderPreCompiler::insertFile(std::string& code, const fs::path& includeFile, uint32_t character)
+{
+    if (!fs::is_regular_file(includeFile)) {
+        throw ShaderCompilerException("Included file \"" + includeFile.string() + "\" is not a file");
+    }
+
+    std::ifstream file(includeFile);
+    std::stringstream buf;
+    buf << file.rdbuf();
+    auto includedCode = buf.str();
+
+    processShaderCode(includedCode, includeFile);
+
+    code.insert(character, includedCode);
+}
+

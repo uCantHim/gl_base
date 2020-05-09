@@ -1,7 +1,10 @@
 #ifndef SHADERLOADER_H
 #define SHADERLOADER_H
 
+#include <vector>
 #include <string>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 #include <GL/glew.h>
 
@@ -61,6 +64,63 @@ namespace glb
          */
         static GLuint linkProgram(const std::vector<GLuint>& shaders);
     };
+
+
+    namespace internal
+    {
+        class ShaderCompilerException : public std::exception
+        {
+        public:
+            ShaderCompilerException(std::string errorMessage)
+                : message(std::move(errorMessage)) {}
+
+            auto what() const noexcept -> const char* override {
+                return message.c_str();
+            }
+
+        private:
+            std::string message;
+        };
+
+
+        class ShaderPreCompiler
+        {
+        public:
+            /**
+             * @brief Apply gl_base features to shader source code
+             *
+             * Currently only has the #include feature. All #include
+             * directives are replaced with the contents of the included
+             * file.
+             *
+             * Paths in the #include can be absolute or relative to the
+             * including shader's directory.
+             *
+             * @param std::string& code The shader code. Modified in-place.
+             * @param const fs::path& shaderPath Path to the shader source.
+             *                                   Used for include resolution
+             */
+            void processShaderCode(std::string& code, const fs::path& shaderPath) noexcept;
+
+        private:
+            /**
+             * @brief Parse code for #includes and insert included files
+             *
+             * Modifies the code in-place.
+             */
+            void processIncludeDirectives(std::string& code, const fs::path& shaderPath);
+
+            /**
+             * @param std::string& code The code to insert the file into.
+             *                          Modified in-place.
+             * @param const fs::path& includeFile The file to read and
+             *                                    insert.
+             * @param uint32_t character The index at which the included file
+             *                           is inserted.
+             */
+            void insertFile(std::string& code, const fs::path& includeFile, uint32_t character);
+        };
+    }
 } // namespace glb
 
 #endif
