@@ -227,8 +227,9 @@ void glb::Window::create(const WindowData& data)
 	initGLEW();
     _openglInitialized = true;
 
-    if (data.useEventHandler == true)
+    if (data.useEventHandler == true) {
         EventHandler::init();
+    }
 	initCallbacks();
 	ilInit();
 

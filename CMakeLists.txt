@@ -20,3 +20,13 @@ project(opengl_base_utilities)
 
 add_library(gl_base)
 add_subdirectory(src)
+
+target_compile_options(
+    gl_base
+    PUBLIC
+        -fPIC
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
