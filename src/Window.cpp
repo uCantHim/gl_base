@@ -5,7 +5,7 @@
 
 #include <IL/il.h>
 
-#include "EventHandler.h"
+#include "event/EventHandler.h"
 
 
 

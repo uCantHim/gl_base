@@ -21,6 +21,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(gl_base)
 add_subdirectory(src)
+add_subdirectory(include)
 
 # External packages
 find_package(OpenGL REQUIRED)

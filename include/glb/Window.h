@@ -12,7 +12,7 @@
 #include <glm/glm.hpp>
 using namespace glm;
 
-#include "Event/Event.h"
+#include "event/Event.h"
 
 namespace glb
 {
