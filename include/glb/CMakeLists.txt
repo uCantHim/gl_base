@@ -3,6 +3,7 @@ target_sources(
     PUBLIC
         Camera.h
         GlmUtility.h
+        LazyInitializer.h
         OpenglResource.h
         Shader.h
         ShaderLoader.h

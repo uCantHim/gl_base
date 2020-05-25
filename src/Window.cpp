@@ -6,30 +6,7 @@
 #include <IL/il.h>
 
 #include "event/EventHandler.h"
-
-
-
-void glb::OpenGlLazyInit::addLazyInitializer(std::function<void(void)> func)
-{
-	if (!Window::isOpenGlInitialized())
-		lazyInitializers.push_back(std::move(func));
-	else
-		std::invoke(func);
-}
-
-void glb::OpenGlLazyInit::initAll()
-{
-	for (const auto& func : lazyInitializers)
-		std::invoke(func);
-}
-
-
-
-template<class Derived>
-glb::OpenGlLazyInitializer<Derived>::OpenGlLazyInitializer()
-{
-	addLazyInitializer(std::bind(&Derived::openGlLazyInit, this));
-}
+#include "LazyInitializer.h"
 
 
 
@@ -66,7 +43,7 @@ void initGLEW()
 	std::cout << "--- GLEW initialized.\n";
 }
 
-GLFWwindow* createWindow(const glb::Window::WindowData& data)
+GLFWwindow* createWindow(const glb::Window::WindowCreateInfo& data)
 {
 	// Create window
 	int currentMajorVersion{ glb::DEFAULT_OPENGL_VERSION_MAJOR };
@@ -105,8 +82,9 @@ GLFWwindow* createWindow(const glb::Window::WindowData& data)
 				currentMajorVersion--;
 
 			// Silence warnings
-			const int _6 = 6;
-			const int _5 = 5;
+			constexpr int _6 = 6;
+			constexpr int _5 = 5;
+			constexpr int _3 = 3;
 
 			switch (currentMajorVersion)
 			{
@@ -116,7 +94,7 @@ GLFWwindow* createWindow(const glb::Window::WindowData& data)
 				break;
 			case 3:
 				if (currentMinorVersion < 0)
-					currentMinorVersion = 3;
+					currentMinorVersion = _3;
 				break;
 			case 2:
 				if (currentMinorVersion < 0)
@@ -135,12 +113,15 @@ GLFWwindow* createWindow(const glb::Window::WindowData& data)
 	// Window is still nullptr if the specified major and minor version could not be provided
 	if (window == nullptr)
 	{
-		std::cout << "The specified OpenGL requirements major-version = " << data.minOpenGlVersionMajor
-			<< " and minor-version " << data.minOpenGlVersionMinor << " could not be met.";
+		std::cout << "The specified OpenGL requirements major-version = "
+                  << data.minOpenGlVersionMajor << " and minor-version "
+                  << data.minOpenGlVersionMinor << " could not be met.";
 		glfwTerminate();
 		throw std::runtime_error("Window creation failed: OpenGL version not supported.");
 	}
-	std::cout << "--- OpenGL context created with version " << currentMajorVersion << "." << currentMinorVersion << "\n";
+
+	std::cout << "--- OpenGL context created with version " << currentMajorVersion
+              << "." << currentMinorVersion << "\n";
 
     return window;
 }
@@ -202,7 +183,7 @@ void glb::Window::initCallbacks()
 	std::cout << "--- Event handler initialized.\n";
 }
 
-void glb::Window::create(const WindowData& data)
+void glb::Window::create(const WindowCreateInfo& data)
 {
     if (_isOpen) return;
 
@@ -211,21 +192,26 @@ void glb::Window::create(const WindowData& data)
 
     // Create and init window
     window = createWindow(data);
-	glfwSetInputMode(window, GLFW_STICKY_KEYS,			data.inputMode & InputModeFlags::stickyKeys);
-	glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, data.inputMode & InputModeFlags::stickyMouseButtons);
-	glfwSetInputMode(window, GLFW_CURSOR, static_cast<int>(data.cursorMode));
+	glfwSetInputMode(window, GLFW_STICKY_KEYS,
+                     data.inputMode & InputModeFlags::stickyKeys);
+	glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS,
+                     data.inputMode & InputModeFlags::stickyMouseButtons);
+	glfwSetInputMode(window, GLFW_CURSOR,
+                     static_cast<int>(data.cursorMode));
 
     // Vsync must be set after the window is created, idk why
 	makeContextCurrent();
-	if (data.vsync)
-		glfwSwapInterval(SWAP_INTERVAL_VSYNC_ENABLED); // Sets the swap interval for the current context
-	else
+	if (data.vsync) {
+		glfwSwapInterval(SWAP_INTERVAL_VSYNC_ENABLED);
+    }
+	else {
 		glfwSwapInterval(SWAP_INTERVAL_VSYNC_DISABLED); // Interval == 0 -> disable vsync
+    }
 
 	// Initialize additional resources
 	// GLEW must be initialized after an OpenGL context (aka. the window) has been created.
 	initGLEW();
-    _openglInitialized = true;
+    contextCreated = true;
 
     if (data.useEventHandler == true) {
         EventHandler::init();
@@ -309,9 +295,9 @@ bool glb::Window::isOpen()
 	return _isOpen;
 }
 
-bool glb::Window::isOpenGlInitialized()
+bool glb::Window::isContextCreated()
 {
-    return _openglInitialized;
+    return contextCreated;
 }
 
 void glb::Window::makeContextCurrent()

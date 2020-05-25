@@ -2,10 +2,8 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include <vector>
 #include <string>
-#include <unordered_map>
-#include <functional>
-#include <iostream>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -26,65 +24,6 @@ namespace glb
     constexpr int SWAP_INTERVAL_VSYNC_DISABLED = 0;
     constexpr int SWAP_INTERVAL_VSYNC_ENABLED = 2;
 
-
-    /**
-     * Provides a static function to initialize statically created objects
-     * lazily after an OpenGL constext has been created.
-     */
-    class OpenGlLazyInit
-    {
-    public:
-        /**
-         * @brief Add a function to execute at context creation
-         *
-         * This can be used to initialize OpenGL objects as soon as possible
-         * but still after window creation. Is called in the same thread that
-         * the OpenGL context was created.
-         *
-         * If the window has already been created, the function is called
-         * immediately.
-         *
-         * @param std::function<void(void)> func The function to execute at
-         *                                       window creation
-         */
-        static void addLazyInitializer(std::function<void(void)> func);
-
-    private:
-        friend class Window;
-
-        /**
-         * Calls all lazy initializers. Called by Window.
-         */
-        static void initAll();
-
-        static inline std::vector<std::function<void(void)>> lazyInitializers;
-    };
-
-
-    /**
-     * @brief Lazy initialization for OpenGL calls
-     *
-     * Subclasses must implement a method "openGlLazyInit" with the
-     * signature std::function<void(void)>.
-     *
-     * Inheriting from this class and implementing openGlLazyInit promises
-     * that the function will be called as soon as possible but after an
-     * OpenGL context has been created. It is called in the OpenGL main
-     * thread.
-     *
-     * Instantiating a class derived from this when an OpenGL context
-     * already exists calls Derived::openGlLazyInit immediately.
-     *
-     * @tparam Derived The derived class, CRTP style
-     */
-    template <class Derived>
-    class OpenGlLazyInitializer
-    {
-    public:
-        OpenGlLazyInitializer();
-    };
-
-
     /**
      * @brief A window. Represents an OpenGL rendering context.
      *
@@ -102,15 +41,15 @@ namespace glb
      * been destroyed.
      * Query whether the window is created with Window::isOpen().
      *
-     * The WindowData structure is passed as an argument to Window::create()
+     * The WindowCreateInfo structure is passed as an argument to Window::create()
      * and controls many properties of the window and further functionality
      * of the library.
-     * It is not required to specify a WindowData, the default values are
-     * sensible for simple tests. You'll want to customize these values for
-     * more fleshed-out applications.
+     * It is not required to specify a WindowCreateInfo, the default values
+     * are sensible for simple tests. You'll want to customize these values
+     * for more fleshed-out applications.
      *
      * The window also initializes the EventHandler and with it the gl_base
-     * event system. If you wish not to use this funtionality, disable
+     * event system. If you wish **not** to use this funtionality, disable
      * initialization of the EventHandler by setting the useEventHandler
      * flag in the WindowData passed to Window::create().
      *
@@ -146,16 +85,36 @@ namespace glb
 
         /**
          * @brief Initialization information for windows
+         *
+         * glb always tries to initialize the context with the highest
+         * possible OpenGL version. If context creation fails, it will try
+         * out lower version until context creation succeeds.
+         *
+         * It is possible to specify a minimum number for major and minor
+         * versions. If these minimums cannot be met, window creation will
+         * fail with an exception. The default minimum version is 4.5.
          */
-        struct WindowData {
-            WindowData() {} // GCC and Clang need this non-defaulted constructor. Not required for MSVC.
+        struct WindowCreateInfo {
+            WindowCreateInfo() {} // GCC and Clang can't handle default ctors in nested structs
 
             size_t width{ DEFAULT_WINDOW_WIDTH };
             size_t height{ DEFAULT_WINDOW_HEIGHT };
+
+            // Give the window a name
             std::string windowName;
 
+            // The minimum accepted OpenGL version. Window creation fails
+            // if no OpenGL context with at least this major version can
+            // be created.
             int minOpenGlVersionMajor{ DEFAULT_OPENGL_VERSION_MAJOR };
+
+            // The minimum accepted OpenGL version. Window creation fails
+            // if no OpenGL context with at least this minor version can
+            // be created.
             int minOpenGlVersionMinor{ DEFAULT_OPENGL_VERSION_MINOR };
+
+            // Number of samples in the multisampling buffer in
+            // multisampling is enabled
             int sampleCount{ DEFAULT_OPENGL_SAMPLE_COUNT };
 
             bool resizable{ false };
@@ -163,9 +122,15 @@ namespace glb
             bool fullscreen{ false };
             bool vsync{ false };
 
-            InputModeFlags inputMode = static_cast<InputModeFlags>(InputModeFlags::stickyKeys | InputModeFlags::stickyMouseButtons);
+            // A combination of InputModeFlags that control input behaviour
+            InputModeFlags inputMode = static_cast<InputModeFlags>(
+                InputModeFlags::stickyKeys | InputModeFlags::stickyMouseButtons
+            );
+            // A CursorMode that controls cursor behaviour
             CursorMode cursorMode{ CursorMode::normal };
 
+            // Start an event handler thread if true. Setting this to false
+            // disabled the event handler and thus the glb event system.
             bool useEventHandler{ true };
         };
 
@@ -179,7 +144,7 @@ namespace glb
          *
          * @param WindowData data Initialization data
          */
-        static void create(const WindowData& data = {});
+        static void create(const WindowCreateInfo& data = {});
 
         /**
          * @brief Close and destroy the window
@@ -235,7 +200,6 @@ namespace glb
         /**
          * @return ivec2 The window size in pixels
          */
-        [[nodiscard]]
         static ivec2 getSizePixels();
 
         /**
@@ -252,18 +216,18 @@ namespace glb
         static bool isOpen();
 
         /**
-         * @return bool True is OpenGL has been initialized. This is true once
-         *              Window::create() has been called the first time. Stays
-         *              true until the program is terminated.
+         * @return bool True if an OpenGL context has been created. This is
+         *              true once Window::create() has been called the first
+         *              time. Stays true until the program terminates.
          */
-        static bool isOpenGlInitialized();
+        static bool isContextCreated();
 
     private:
         // Internal GLFW callbacks
         static void initCallbacks();
 
         static void makeContextCurrent();
-        static inline bool _openglInitialized{ false };
+        static inline bool contextCreated{ false };
 
         static inline GLFWwindow* window{ nullptr };
         static inline ivec2 sizePixels;
@@ -272,18 +236,41 @@ namespace glb
     };
 
 
-    class WindowEvent : public Event
-    {
-    };
 
-    class WindowCreateEvent : public WindowEvent
-    {
-    };
+    // ------------------------ //
+    //      Window events       //
+    // ------------------------ //
 
-    class WindowCloseEvent : public WindowEvent
-    {
-    };
+    /**
+     * @brief Base class for all window events
+     */
+    class WindowEvent : public Event {};
 
+    /**
+     * @brief Signals that a window has been created
+     *
+     * Dispatched whenever a new window is created.
+     */
+    class WindowCreateEvent : public WindowEvent {};
+
+    /**
+     * @brief Signals that a window has been closed
+     *
+     * Dispatched whenever a window is closed
+     */
+    class WindowCloseEvent : public WindowEvent {};
+
+    /**
+     * @brief Singals that a window has been resized
+     *
+     * Dispatched whenever a window is resized. This might occur because
+     * Window::resize() is called, or the window is resized by the window
+     * manager.
+     *
+     * @property ivec2 oldSize The window size before it was resized.
+     * @property ivec2 newSize This is the same as the result of a call to
+     *                         Window::getSizePixels().
+     */
     class WindowResizeEvent : public WindowEvent
     {
     public:

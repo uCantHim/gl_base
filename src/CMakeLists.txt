@@ -2,6 +2,7 @@ target_sources(
     gl_base
     PRIVATE
         Camera.cpp
+        LazyInitializer.cpp
         Shader.cpp
         ShaderLoader.cpp
         Texture.cpp
