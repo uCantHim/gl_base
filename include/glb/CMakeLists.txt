@@ -8,6 +8,7 @@ target_sources(
         Shader.h
         ShaderLoader.h
         Texture.h
+        Timer.h
         Window.h
 )
 

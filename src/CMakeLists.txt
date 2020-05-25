@@ -1,5 +1,7 @@
 target_sources(
     gl_base
+    PUBLIC
+        Timer.inl
     PRIVATE
         Camera.cpp
         LazyInitializer.cpp
