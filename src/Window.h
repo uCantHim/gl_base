@@ -2,6 +2,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include <vector>
 #include <string>
 #include <unordered_map>
 #include <functional>
