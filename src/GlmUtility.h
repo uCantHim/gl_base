@@ -15,7 +15,7 @@ namespace glb
         {
             static std::random_device rd;
             static std::mt19937 gen { rd() };
-        };
+        }
 
         template<typename T, typename U>
         static T genNum(T base, U variance) noexcept
@@ -77,7 +77,7 @@ namespace glb
                 base.w
             );
         }
-    };
+    }
 } // namespace glb
 
 #endif
