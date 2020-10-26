@@ -97,6 +97,17 @@ namespace glb
         explicit MouseMoveEvent(vec2 cursorPosition)
             : MouseEvent(cursorPosition) {}
     };
+
+
+    /* +++ MouseScrollEvent +++ */
+    class MouseScrollEvent : public MouseEvent
+    {
+    public:
+        explicit MouseScrollEvent(vec2 scrollOffset)
+            : scrollOffset(scrollOffset) {}
+
+        vec2 scrollOffset;
+    };
 } // namespace glb
 
 #endif

@@ -11,17 +11,17 @@ namespace glb
 {
     namespace glm_util
     {
-        namespace internal
+        namespace
         {
             static std::random_device rd;
             static std::mt19937 gen { rd() };
-        } // namespace internal
+        } // anonymous namespace
 
         template<typename T, typename U>
         static T genNum(T base, U variance) noexcept
         {
             std::uniform_real_distribution<U> dis(-variance, variance);
-            return base + dis(internal::gen);
+            return base + dis(gen);
         }
 
         template<typename T>
@@ -30,9 +30,9 @@ namespace glb
             std::uniform_real_distribution<T> dis(-variance, variance);
 
             return tvec3<T> (
-                base.x + dis(internal::gen),
-                base.y + dis(internal::gen),
-                base.z + dis(internal::gen)
+                base.x + dis(gen),
+                base.y + dis(gen),
+                base.z + dis(gen)
             );
         }
 
@@ -42,9 +42,9 @@ namespace glb
             std::uniform_real_distribution<T> dis(-variance, variance);
 
             return tvec4<T> (
-                base.x + dis(internal::gen),
-                base.y + dis(internal::gen),
-                base.z + dis(internal::gen),
+                base.x + dis(gen),
+                base.y + dis(gen),
+                base.z + dis(gen),
                 base.w
             );
         }
@@ -57,9 +57,9 @@ namespace glb
             std::uniform_real_distribution<T> disZ(-variance.z, variance.z);
 
             return tvec3<T> (
-                base.x + disX(internal::gen),
-                base.y + disY(internal::gen),
-                base.z + disZ(internal::gen)
+                base.x + disX(gen),
+                base.y + disY(gen),
+                base.z + disZ(gen)
             );
         }
 
@@ -71,9 +71,9 @@ namespace glb
             std::uniform_real_distribution<T> disZ(-variance.z, variance.z);
 
             return tvec4<T> (
-                base.x + disX(internal::gen),
-                base.y + disY(internal::gen),
-                base.z + disZ(internal::gen),
+                base.x + disX(gen),
+                base.y + disY(gen),
+                base.z + disZ(gen),
                 base.w
             );
         }

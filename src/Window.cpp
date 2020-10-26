@@ -180,6 +180,10 @@ void glb::Window::initCallbacks()
         EventHandler::notify(std::make_unique<WindowResizeEvent>(oldSize, sizePixels));
     });
 
+    glfwSetScrollCallback(window, [](GLFWwindow*, double xOffset, double yOffset) {
+        EventHandler::notify(std::make_unique<MouseScrollEvent>(vec2(xOffset, yOffset)));
+    });
+
 	std::cout << "--- Event handler initialized.\n";
 }
 
