@@ -3,8 +3,6 @@
 #include <stdexcept>
 #include <iostream>
 
-#include <IL/il.h>
-
 #include "event/EventHandler.h"
 #include "LazyInitializer.h"
 
@@ -221,7 +219,6 @@ void glb::Window::create(const WindowCreateInfo& data)
         EventHandler::init();
     }
 	initCallbacks();
-	ilInit();
 
 	// Call lazy initializers
 	OpenGlLazyInit::initAll();

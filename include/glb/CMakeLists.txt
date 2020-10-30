@@ -7,7 +7,6 @@ target_sources(
         OpenglResource.h
         Shader.h
         ShaderLoader.h
-        Texture.h
         Timer.h
         Window.h
 )

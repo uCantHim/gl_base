@@ -7,7 +7,6 @@ target_sources(
         LazyInitializer.cpp
         Shader.cpp
         ShaderLoader.cpp
-        Texture.cpp
         Window.cpp
 )
 
