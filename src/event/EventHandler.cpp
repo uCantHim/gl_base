@@ -44,6 +44,11 @@ void glb::EventHandler::run()
 {
 	while (true)
 	{
+        using namespace std::chrono;
+        // I have no idea why I have to do this. But if I don't, the
+        // handler doesn't receive events.
+        std::this_thread::sleep_for(1ns);
+
 		if (!pendingEvents.empty())
 		{
 			auto e = std::shared_ptr<Event> (pendingEvents.front());
