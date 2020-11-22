@@ -21,6 +21,7 @@ target_link_libraries(
     PUBLIC
         ${OPENGL_LIBRARIES}
         ${GLEW_LIBRARIES}
+        GLEW::GLEW
         glfw
         pthread
 )
