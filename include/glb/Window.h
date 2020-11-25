@@ -17,8 +17,6 @@ namespace glb
     constexpr size_t DEFAULT_WINDOW_WIDTH = 1920;
     constexpr size_t DEFAULT_WINDOW_HEIGHT = 1080;
 
-    constexpr int DEFAULT_OPENGL_VERSION_MAJOR = 4;
-    constexpr int DEFAULT_OPENGL_VERSION_MINOR = 5;
     constexpr int DEFAULT_OPENGL_SAMPLE_COUNT = 4;
 
     constexpr int SWAP_INTERVAL_VSYNC_DISABLED = 0;
@@ -106,12 +104,12 @@ namespace glb
             // The minimum accepted OpenGL version. Window creation fails
             // if no OpenGL context with at least this major version can
             // be created.
-            int minOpenGlVersionMajor{ DEFAULT_OPENGL_VERSION_MAJOR };
+            int minOpenGlVersionMajor{ 1 };
 
             // The minimum accepted OpenGL version. Window creation fails
             // if no OpenGL context with at least this minor version can
             // be created.
-            int minOpenGlVersionMinor{ DEFAULT_OPENGL_VERSION_MINOR };
+            int minOpenGlVersionMinor{ 0 };
 
             // Number of samples in the multisampling buffer in
             // multisampling is enabled

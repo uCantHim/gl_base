@@ -41,83 +41,32 @@ void initGLEW()
 
 GLFWwindow* createWindow(const glb::Window::WindowCreateInfo& data)
 {
-    // Create window
-    int currentMajorVersion{ glb::DEFAULT_OPENGL_VERSION_MAJOR };
-    int currentMinorVersion{ glb::DEFAULT_OPENGL_VERSION_MINOR };
+    glfwWindowHint(GLFW_SAMPLES, data.sampleCount);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
 
-    GLFWwindow* window{ nullptr };
-    while (window == nullptr
-        && currentMajorVersion >= data.minOpenGlVersionMajor
-        && currentMinorVersion >= data.minOpenGlVersionMinor)
-    {
-        glfwWindowHint(GLFW_SAMPLES, data.sampleCount);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, data.minOpenGlVersionMajor);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, data.minOpenGlVersionMinor);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, data.resizable);
+    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, data.transparent);
+    glfwWindowHint(GLFW_VISIBLE, true);
+    glfwWindowHint(GLFW_FOCUSED, true);
 
-        glfwWindowHint(GLFW_RESIZABLE, data.resizable);
-        glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, data.transparent);
-        glfwWindowHint(GLFW_VISIBLE, true);
-        glfwWindowHint(GLFW_FOCUSED, true);
+    // Enable to have window always on top
+    // glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
 
-        // Enable to have window always on top
-        // glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-
-        window = glfwCreateWindow(
-            static_cast<int>(data.width),
-            static_cast<int>(data.height),
-            data.windowName.c_str(),
-            nullptr,
-            nullptr
-        );
-        if (window == nullptr)
-        {
-            // Calculate new version
-            currentMinorVersion--;
-            if (currentMinorVersion < 0)
-                currentMajorVersion--;
-
-            // Silence warnings
-            constexpr int _6 = 6;
-            constexpr int _5 = 5;
-            constexpr int _3 = 3;
-
-            switch (currentMajorVersion)
-            {
-            case 4:
-                if (currentMinorVersion < 0)
-                    currentMinorVersion = _6;
-                break;
-            case 3:
-                if (currentMinorVersion < 0)
-                    currentMinorVersion = _3;
-                break;
-            case 2:
-                if (currentMinorVersion < 0)
-                    currentMinorVersion = 1;
-                break;
-            case 1:
-                if (currentMinorVersion < 0)
-                    currentMinorVersion = _5;
-                break;
-            case 0:
-                break;
-            }
-        }
-    }
-
-    // Window is still nullptr if the specified major and minor version could not be provided
+    GLFWwindow* window = glfwCreateWindow(
+        static_cast<int>(data.width),
+        static_cast<int>(data.height),
+        data.windowName.c_str(),
+        nullptr,
+        nullptr
+    );
     if (window == nullptr)
     {
-        std::cout << "The specified OpenGL requirements major-version = "
-                  << data.minOpenGlVersionMajor << " and minor-version "
-                  << data.minOpenGlVersionMinor << " could not be met.";
+        const char* error;
+        glfwGetError(&error);
         glfwTerminate();
-        throw std::runtime_error("Window creation failed: OpenGL version not supported.");
-    }
 
-    std::cout << "--- OpenGL context created with version " << currentMajorVersion
-              << "." << currentMinorVersion << "\n";
+        throw std::runtime_error("Unable to create window: " + std::string(error));
+    }
 
     return window;
 }
@@ -201,6 +150,19 @@ void glb::Window::create(const WindowCreateInfo& data)
 
     // Vsync must be set after the window is created, idk why
     makeContextCurrent();
+
+    GLint major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+    if (major < data.minOpenGlVersionMajor || minor < data.minOpenGlVersionMinor)
+    {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        throw std::runtime_error("Unable to create OpenGL context of minimum required version"
+                                 + std::to_string(major) + "." + std::to_string(minor));
+    }
+    std::cout << "--- OpenGL context created with version " << major << "." << minor << "\n";
+
     if (data.vsync) {
         glfwSwapInterval(SWAP_INTERVAL_VSYNC_ENABLED);
     }
