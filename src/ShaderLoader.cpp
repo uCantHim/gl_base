@@ -84,7 +84,7 @@ GLuint glb::ShaderLoader::loadShader(const std::string& path, GLuint glShaderEnu
 	{
         std::vector<char> infoLog(infoLogLength);
 		glGetShaderInfoLog(shader, infoLogLength, nullptr, infoLog.data());
-        throw shader_compile_error(std::string(infoLog.data()));
+        throw shader_compile_error("In file " + path + ":\n" + std::string(infoLog.data()));
 	}
 
 	return shader;
