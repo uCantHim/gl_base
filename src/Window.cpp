@@ -42,7 +42,16 @@ void initGLEW()
 GLFWwindow* createWindow(const glb::Window::WindowCreateInfo& data)
 {
     glfwWindowHint(GLFW_SAMPLES, data.sampleCount);
+#if defined(__APPLE__)
+    // Mac OS only supports forward compatible core profiles with at most
+    // version 4.1
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+#else
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+#endif
 
     glfwWindowHint(GLFW_RESIZABLE, data.resizable);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, data.transparent);
