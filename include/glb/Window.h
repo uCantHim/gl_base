@@ -97,6 +97,8 @@ namespace glb
 
             size_t width{ DEFAULT_WINDOW_WIDTH };
             size_t height{ DEFAULT_WINDOW_HEIGHT };
+            size_t posX{ 0 };
+            size_t posY{ 0 };
 
             // Give the window a name
             std::string windowName;

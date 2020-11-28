@@ -156,6 +156,7 @@ void glb::Window::create(const WindowCreateInfo& data)
                      data.inputMode & InputModeFlags::stickyMouseButtons);
     glfwSetInputMode(window, GLFW_CURSOR,
                      static_cast<int>(data.cursorMode));
+    glfwSetWindowPos(window, data.posX, data.posY);
 
     // Vsync must be set after the window is created, idk why
     makeContextCurrent();
