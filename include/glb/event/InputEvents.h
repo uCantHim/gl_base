@@ -1,113 +1,91 @@
 #pragma once
-#ifndef INPUTEVENTS_H
-#define INPUTEVENTS_H
 
-#include <glm/glm.hpp>
-using namespace glm;
-
-#include "Event.h"
-#include "KeyDefinitions.h"
+#include "Keys.h"
 
 namespace glb
 {
-    /* +++ InputEvent +++ */
-    class InputEvent : public Event
-    {
-    };
+    ///////////////////////////
+    //      Key Events       //
+    ///////////////////////////
 
-    /* +++ KeyEvent +++ */
-    class KeyEvent : public InputEvent
+    struct KeyEventBase
     {
+        Key key;
+        int mods;
+        InputAction action;
+
     protected:
-        KeyEvent(eKey key, eKeyMod mods);
-
-    public:
-        KeyEvent(const KeyEvent&) = default;
-        KeyEvent(KeyEvent&&) noexcept = default;
-        ~KeyEvent() override = default;
-
-        KeyEvent& operator=(KeyEvent&&) noexcept = delete;
-        KeyEvent& operator=(const KeyEvent&) = delete;
-
-        const eKey key;
-        const eKeyMod mods;
+        KeyEventBase(Key key, int mod, InputAction action)
+            : key(key), mods(mod), action(action) {}
     };
 
-    class KeyPressEvent : public KeyEvent
+    struct KeyPressEvent : public KeyEventBase
     {
-    public:
-        KeyPressEvent(eKey key, eKeyMod mods)
-            : KeyEvent(key, mods) {}
+        KeyPressEvent(Key key, int mod)
+            : KeyEventBase(key, mod, InputAction::press) {}
+
     };
 
-    class KeyReleaseEvent : public KeyEvent
+    struct KeyReleaseEvent : public KeyEventBase
     {
-    public:
-        KeyReleaseEvent(eKey key, eKeyMod mods)
-            : KeyEvent(key, mods) {}
+        KeyReleaseEvent(Key key, int mod)
+            : KeyEventBase(key, mod, InputAction::release) {}
+    };
+
+    struct KeyRepeatEvent : public KeyEventBase
+    {
+        KeyRepeatEvent(Key key, int mod)
+            : KeyEventBase(key, mod, InputAction::repeat) {}
     };
 
 
-    /* +++ MouseEvent +++ */
-    class MouseEvent : public InputEvent
+    struct CharInputEvent
     {
-    public:
-        explicit MouseEvent(vec2 cursorPosition = cursorPos);
-        MouseEvent(const MouseEvent&) = default;
-        MouseEvent(MouseEvent&&) noexcept = default;
-        ~MouseEvent() override = default;
-
-        MouseEvent& operator=(const MouseEvent&) = default;
-        MouseEvent& operator=(MouseEvent&&) noexcept = default;
-
-        static inline vec2 cursorPos;
+        uint32_t character;
     };
 
 
-    /* +++ MouseButtonEvent +++ */
-    class MouseButtonEvent : public MouseEvent
+    /////////////////////////////
+    //      Mouse Events       //
+    /////////////////////////////
+
+    struct MouseMoveEvent
     {
+        float x;
+        float y;
+    };
+
+    struct MouseButtonEventBase
+    {
+        MouseButton button;
+        int mods;
+        InputAction action;
+
     protected:
-        MouseButtonEvent(eMouseButton button, eKeyMod mods);
-
-    public:
-        const eMouseButton button;
-        const eKeyMod mods;
+        MouseButtonEventBase(MouseButton button, int mods, InputAction action)
+            : button(button), mods(mods), action(action) {}
     };
 
-    class MouseButtonPressEvent : public MouseButtonEvent
+    struct MouseClickEvent : public MouseButtonEventBase
     {
-    public:
-        MouseButtonPressEvent(eMouseButton button, eKeyMod mods)
-            : MouseButtonEvent(button, mods) {}
+        MouseClickEvent(MouseButton button, int mods)
+            : MouseButtonEventBase(button, mods, InputAction::press) {}
     };
 
-    class MouseButtonReleaseEvent : public MouseButtonEvent
+    struct MouseReleaseEvent : public MouseButtonEventBase
     {
-    public:
-        MouseButtonReleaseEvent(eMouseButton button, eKeyMod mods)
-            : MouseButtonEvent(button, mods) {}
+        MouseReleaseEvent(MouseButton button, int mods)
+            : MouseButtonEventBase(button, mods, InputAction::release) {}
     };
 
 
-    /* +++ MouseMoveEvent +++ */
-    class MouseMoveEvent : public MouseEvent
+    /////////////////////////////
+    //      Other Events       //
+    /////////////////////////////
+
+    struct ScrollEvent
     {
-    public:
-        explicit MouseMoveEvent(vec2 cursorPosition)
-            : MouseEvent(cursorPosition) {}
+        float xOffset;
+        float yOffset;
     };
-
-
-    /* +++ MouseScrollEvent +++ */
-    class MouseScrollEvent : public MouseEvent
-    {
-    public:
-        explicit MouseScrollEvent(vec2 scrollOffset)
-            : scrollOffset(scrollOffset) {}
-
-        vec2 scrollOffset;
-    };
-} // namespace glb
-
-#endif
+}

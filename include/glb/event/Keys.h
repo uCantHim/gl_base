@@ -1,8 +1,5 @@
 #pragma once
-#ifndef KEYDEFINITIONS_H
-#define KEYDEFINITIONS_H
 
-#include <GL/glew.h> // Include glew.h before gl.h (which is included in glfw.h)
 #include <GLFW/glfw3.h>
 
 namespace glb
@@ -10,7 +7,7 @@ namespace glb
     /**
      * These have the same numeric value as the corresponding GLFW defines.
      */
-    enum class eKey {
+    enum class Key {
         a = GLFW_KEY_A,
         b = GLFW_KEY_B,
         c = GLFW_KEY_C,
@@ -124,6 +121,8 @@ namespace glb
         scroll_lock     = GLFW_KEY_SCROLL_LOCK,       // rollen on german
         pause           = GLFW_KEY_PAUSE,
 
+        unknown         = GLFW_KEY_UNKNOWN,
+
         MAX_ENUM = GLFW_KEY_LAST
     };
 
@@ -132,7 +131,7 @@ namespace glb
      *
      * This is not an enum class because mods have to be combinable
      */
-    enum eKeyMod {
+    enum KeyMod {
         shift     = GLFW_MOD_SHIFT,
         control   = GLFW_MOD_CONTROL,
         alt       = GLFW_MOD_ALT,
@@ -146,7 +145,7 @@ namespace glb
     /**
      * These have the same numeric value as the corresponding GLFW defines.
      */
-    enum class eMouseButton {
+    enum class MouseButton {
         left     = GLFW_MOUSE_BUTTON_LEFT,
         right    = GLFW_MOUSE_BUTTON_RIGHT,
         wheel    = GLFW_MOUSE_BUTTON_MIDDLE,
@@ -167,7 +166,7 @@ namespace glb
     /**
      * These have the same numeric value as the corresponding GLFW defines.
      */
-    enum class eInputAction {
+    enum class InputAction {
         release = GLFW_RELEASE,
         press = GLFW_PRESS,
         repeat = GLFW_REPEAT,
@@ -175,5 +174,3 @@ namespace glb
         MAX_ENUM
     };
 } // namespace glb
-
-#endif

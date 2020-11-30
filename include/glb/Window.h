@@ -242,23 +242,18 @@ namespace glb
     // ------------------------ //
 
     /**
-     * @brief Base class for all window events
-     */
-    class WindowEvent : public Event {};
-
-    /**
      * @brief Signals that a window has been created
      *
      * Dispatched whenever a new window is created.
      */
-    class WindowCreateEvent : public WindowEvent {};
+    class WindowCreateEvent {};
 
     /**
      * @brief Signals that a window has been closed
      *
      * Dispatched whenever a window is closed
      */
-    class WindowCloseEvent : public WindowEvent {};
+    class WindowCloseEvent {};
 
     /**
      * @brief Singals that a window has been resized
@@ -271,7 +266,7 @@ namespace glb
      * @property ivec2 newSize This is the same as the result of a call to
      *                         Window::getSizePixels().
      */
-    class WindowResizeEvent : public WindowEvent
+    class WindowResizeEvent
     {
     public:
         WindowResizeEvent(ivec2 oldSize, ivec2 newSize)

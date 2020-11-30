@@ -1,9 +1,0 @@
-target_sources(
-    gl_base
-    PUBLIC
-        Event.h
-        EventHandler.h
-        InputEvents.h
-        KeyDefinitions.h
-        Listener.h
-)

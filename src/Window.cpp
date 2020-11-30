@@ -80,63 +80,83 @@ GLFWwindow* createWindow(const glb::Window::WindowCreateInfo& data)
     return window;
 }
 
+void onChar(GLFWwindow*, unsigned int codepoint)
+{
+    glb::EventHandler<glb::CharInputEvent>::notify({ codepoint });
+}
+
+void onKey(GLFWwindow*, int key, int, int action, int mods)
+{
+    switch(action)
+    {
+    case GLFW_PRESS:
+        glb::EventHandler<glb::KeyPressEvent>::notify({ static_cast<glb::Key>(key), mods });
+        break;
+    case GLFW_RELEASE:
+        glb::EventHandler<glb::KeyReleaseEvent>::notify({ static_cast<glb::Key>(key), mods });
+        break;
+    case GLFW_REPEAT:
+        glb::EventHandler<glb::KeyRepeatEvent>::notify({ static_cast<glb::Key>(key), mods });
+        break;
+    default:
+        throw std::logic_error("");
+    };
+}
+
+void onMouseMove(GLFWwindow*, double xpos, double ypos)
+{
+    glb::EventHandler<glb::MouseMoveEvent>::notify(
+        { static_cast<float>(xpos), static_cast<float>(ypos) }
+    );
+}
+
+void onMouseClick(GLFWwindow*, int button, int action, int mods)
+{
+    switch (action)
+    {
+    case GLFW_PRESS:
+        glb::EventHandler<glb::MouseClickEvent>::notify(
+            { static_cast<glb::MouseButton>(button), mods }
+        );
+        break;
+    case GLFW_RELEASE:
+        glb::EventHandler<glb::MouseReleaseEvent>::notify(
+            { static_cast<glb::MouseButton>(button), mods }
+        );
+        break;
+    default:
+        throw std::logic_error("");
+    }
+}
+
+void onScroll(GLFWwindow*, double xOffset, double yOffset)
+{
+    glb::EventHandler<glb::ScrollEvent>::notify(
+        { static_cast<float>(xOffset), static_cast<float>(yOffset) }
+    );
+}
+
+void onWindowClose(GLFWwindow*)
+{
+    glb::Window::close();
+}
+
 void glb::Window::initCallbacks()
 {
-    glfwSetKeyCallback(window, [](GLFWwindow*, int key, int /*scancode*/, int action, int mods) {
-        if (action == static_cast<int>(eInputAction::press))
-        {
-            EventHandler::notify(
-                std::make_unique<KeyPressEvent>(
-                    static_cast<eKey>(key),
-                    static_cast<eKeyMod>(mods)
-            ));
-        }
-        if (action == static_cast<int>(eInputAction::release))
-        {
-            EventHandler::notify(
-                std::make_unique<KeyReleaseEvent>(
-                    static_cast<eKey>(key),
-                    static_cast<eKeyMod>(mods)
-            ));
-        }
-    });
-
-    glfwSetMouseButtonCallback(window, [](GLFWwindow*, int button, int action, int mods) {
-        if (action == static_cast<int>(eInputAction::press))
-        {
-            EventHandler::notify(
-                std::make_unique<MouseButtonPressEvent>(
-                    static_cast<eMouseButton>(button),
-                    static_cast<eKeyMod>(mods)
-            ));
-        }
-        if (action == static_cast<int>(eInputAction::release))
-        {
-            EventHandler::notify(
-                std::make_unique<MouseButtonReleaseEvent>(
-                    static_cast<eMouseButton>(button),
-                    static_cast<eKeyMod>(mods)
-            ));
-        }
-    });
-
-    glfwSetCursorPosCallback(window, [](GLFWwindow*, double xpos, double ypos) {
-        EventHandler::notify(std::make_unique<MouseMoveEvent>(vec2(xpos, ypos)));
-    });
-
-    glfwSetWindowCloseCallback(window, [](GLFWwindow*) {
-        close();
-    });
+    // Actually, I can use lambdas here, but I find this more clean now
+    glfwSetCharCallback(window, onChar);
+    glfwSetKeyCallback(window, onKey);
+    glfwSetCursorPosCallback(window, onMouseMove);
+    glfwSetMouseButtonCallback(window, onMouseClick);
+    glfwSetScrollCallback(window, onScroll);
 
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int width, int height) {
         ivec2 oldSize = sizePixels;
+        // Update window member
         sizePixels = ivec2(width, height);
-        EventHandler::notify(std::make_unique<WindowResizeEvent>(oldSize, sizePixels));
+        glb::EventHandler<glb::WindowResizeEvent>::notify({ oldSize, ivec2(width, height) });
     });
-
-    glfwSetScrollCallback(window, [](GLFWwindow*, double xOffset, double yOffset) {
-        EventHandler::notify(std::make_unique<MouseScrollEvent>(vec2(xOffset, yOffset)));
-    });
+    glfwSetWindowCloseCallback(window, onWindowClose);
 
     std::cout << "--- Event handler initialized.\n";
 }
@@ -186,7 +206,7 @@ void glb::Window::create(const WindowCreateInfo& data)
     contextCreated = true;
 
     if (data.useEventHandler == true) {
-        EventHandler::init();
+        EventThread::start();
     }
     initCallbacks();
 
@@ -198,7 +218,7 @@ void glb::Window::create(const WindowCreateInfo& data)
 
     sizePixels = ivec2(data.width, data.height);
     _isOpen = true;
-    EventHandler::notify(std::make_unique<WindowCreateEvent>());
+    fire<WindowCreateEvent>();
     std::cout << "--- Window created successfully.\n";
 
     // Resize the window to the actual framebuffer size.
@@ -215,7 +235,8 @@ void glb::Window::close()
     if (!_isOpen) return;
 
     _isOpen = false;
-    EventHandler::notify(std::make_unique<WindowCloseEvent>());
+    glb::EventHandler<glb::WindowCloseEvent>::notify({});
+    EventThread::terminate();
     glfwDestroyWindow(window);
 }
 
@@ -258,7 +279,7 @@ void glb::Window::resize(ivec2 newSizePixels)
     ivec2 oldSize = sizePixels;
     sizePixels = ivec2(newSizePixels.x, newSizePixels.y);
     updateViewport();
-    EventHandler::notify(std::make_unique<WindowResizeEvent>(oldSize, sizePixels));
+    fire<WindowResizeEvent>(oldSize, sizePixels);
 }
 
 bool glb::Window::isOpen()

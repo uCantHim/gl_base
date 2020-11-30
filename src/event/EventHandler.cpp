@@ -1,65 +1,40 @@
 #include "event/EventHandler.h"
 
-#include <thread>
-
-#include "event/Listener.h"
 
 
-
-void glb::EventHandler::init()
+void glb::EventThread::start()
 {
-	static bool initialized = false;
-	if (initialized) return;
-	initialized = true;
+    terminate();
+    shouldStop = false;
 
-	std::thread notify_thread = std::thread(&EventHandler::run);
-	notify_thread.detach();
+    thread = std::thread([]() {
+        while (!shouldStop)
+        {
+            using namespace std::chrono;
+            std::this_thread::sleep_for(1ns);
+
+            // Don't use range-based for-loop here because iterators
+            // are not thread safe. Declare size independently because
+            // it silences the clangtidy modernization warning
+            const size_t size = handlers.size();
+            for (size_t i = 0; i < size; i++)
+            {
+                EventThread::handlers[i]();
+            }
+        }
+    });
 }
 
-void glb::EventHandler::notify(std::unique_ptr<Event> e)
+void glb::EventThread::terminate()
 {
-	pendingEvents.push(e.release());
+    shouldStop = true;
+    if (thread.joinable()) {
+        thread.join();
+    }
 }
 
-void glb::EventHandler::add(Listener& l)
+void glb::EventThread::registerHandler(std::function<void()> pollFunc)
 {
-	listeners.push_back(&l);
-}
-
-void glb::EventHandler::remove(Listener& l)
-{
-	for (size_t i = 0; i < listeners.size(); i++)
-	{
-		if (listeners[i] == &l)
-		{
-			listenerLock.lock();
-			listeners.erase(listeners.begin() + i);
-			listenerLock.unlock();
-			break;
-		}
-	}
-}
-
-void glb::EventHandler::run()
-{
-	while (true)
-	{
-        using namespace std::chrono;
-        // I have no idea why I have to do this. But if I don't, the
-        // handler doesn't receive events.
-        std::this_thread::sleep_for(1ns);
-
-		if (!pendingEvents.empty())
-		{
-			auto e = std::shared_ptr<Event> (pendingEvents.front());
-			pendingEvents.pop();
-
-			listenerLock.lock();
-			for (auto listener : listeners)
-			{
-				listener->onEvent(e);
-			}
-			listenerLock.unlock();
-		}
-	}
+    std::lock_guard lock(handlerListLock);
+    EventThread::handlers.push_back(std::move(pollFunc));
 }
