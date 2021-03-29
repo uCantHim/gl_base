@@ -68,6 +68,7 @@ namespace glb
         static inline std::mutex removedListenersLock;
         static inline std::vector<ListenerId> removedListeners;
 
+        static inline std::mutex queueLock;
         static inline std::queue<EventType> eventQueue;
     };
 
@@ -105,6 +106,7 @@ namespace glb
         [[maybe_unused]]
         static bool _assert_init = _init;
 
+        std::lock_guard lock(queueLock);
         eventQueue.emplace(std::move(event));
     }
 
@@ -166,6 +168,7 @@ namespace glb
                 listener->callback(event);
             }
 
+            std::lock_guard lock(queueLock);
             eventQueue.pop();
         }
     }
